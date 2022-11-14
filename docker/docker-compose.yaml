@@ -1,0 +1,59 @@
+version: "3.8"
+
+networks:
+  default:
+    driver: bridge
+  myvlan:
+    driver: macvlan
+    driver_opts:
+      parent: eth0 # need to be configured
+    ipam:
+      driver: default
+      config:
+        - subnet:  "172.31.96.0/20" # need to be configured
+          gateway:  "172.31.96.1" # need to be configured
+
+services:
+  db:
+    build: db/
+    environment:
+       POSTGRES_DB: "postgres"
+       POSTGRES_USER: "postgres"
+       POSTGRES_PASSWORD: "postgres"
+    networks:
+      myvlan:
+        aliases:
+          - db_net
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'" ]
+      timeout: 4s
+      retries: 10
+
+  init_db:
+    build: init_db/
+    command: "python3 init.py"
+    volumes:
+      - ./init_db/data:/init_db/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      myvlan:
+        aliases:
+          - init_db_net
+
+  server:
+    build: server/
+    command: "python3 server.py"
+    depends_on:
+      - db
+      - init_db
+    ports:
+      - "8000:8000"
+    networks:
+      myvlan:
+        aliases:
+          - server_myvlan_net
+      default:
+        aliases:
+          - server_bridge_net

@@ -1,0 +1,14 @@
+{
+  "database": {
+    "user":  "postgres",
+    "password": "postgres",
+    "host_alias": "db_net",
+    "port": "5432",
+    "database": "postgres"
+  },
+
+  "server": {
+    "port": "8000",
+    "bridge_net_alias": "server_bridge_net"
+  }
+}

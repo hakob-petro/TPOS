@@ -1,0 +1,6 @@
+#!/bin/bash
+
+docker compose down
+docker image rm docker-server:latest docker-init_db:latest docker-db:latest
+docker compose build --no-cache
+docker compose up --no-build
